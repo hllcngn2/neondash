@@ -4,24 +4,24 @@
 #define MID	1
 #define RIGHT	2
 WINDOW** create_windows();
-void pick_color();
+void pick_color(int* palette);
+void display_color_palette(int* palette,WINDOW* w,int y,int x);
 
 int main(int ac, char** av){
 initscr();
  //noecho(); curs_set(0);
  cbreak(); //nodelay(stdscr,TRUE);
  start_color(); refresh();
-
 WINDOW** w =create_windows();
+int* palette =calloc(20,sizeof(int));
+pick_color(palette);
+display_color_palette(palette,w[LEFT],3,3);
 
 printw("Hello world");
 int color =can_change_color();
 printw("%i",color);
 
-pick_color();
-
 getch();
-
 endwin();
 return 0;}
 
@@ -54,7 +54,7 @@ return w;}
 
 
 
-void pick_color(){
+void pick_color(int* palette){
 printw("\nChoose a color: ");
 int r1,r2,r3, g1,g2,g3, b1,b2,b3;
 r1=r2=r3=g1=g2=g3=b1=b2=b3=0;
@@ -102,4 +102,17 @@ init_color(20,r,g,b);
 init_pair(1,COLOR_BLACK,20);
 attron(COLOR_PAIR(1));
 printw("   ");
+palette[0]=1;
+return;}
+
+
+
+void display_color_palette(int* palette,WINDOW* w,int y,int x){
+wmove(w,y,x);
+int width=10;
+for(int i=0;i<width;i++){
+	wattron(w,COLOR_PAIR(palette[i]));
+	wprintw(w,"  ");
+	wattroff(w,COLOR_PAIR(palette[i]));}
+wrefresh(w);
 return;}
