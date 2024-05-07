@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <ncurses.h>
+#define K_QUIT	'q'
 #define LEFT	0
 #define MID	1
 #define RIGHT	2
@@ -10,27 +11,42 @@ void display_color_palette(int* palette,WINDOW* w,int y,int x);
 
 int main(int ac, char** av){
 initscr();
- //noecho(); curs_set(0);
+ noecho(); curs_set(0);
  cbreak(); //nodelay(stdscr,TRUE);
  start_color(); refresh();
 WINDOW** w =malloc(sizeof(WINDOW*)*3);
 create_ui(w);
 create_canvas(w,5+2,10+2);
+
 int* paletteb =calloc(20,sizeof(int));
 int* palettef =calloc(20,sizeof(int));
-pick_color();
-init_pair(10,COLOR_BLACK,20);
-init_pair(11,20,COLOR_BLACK);
+/*
+int col =pick_color();
+init_pair(10,COLOR_BLACK,col);
+init_pair(11,col,COLOR_BLACK);
 paletteb[0]=10;
 palettef[0]=11;
+*/
 display_color_palette(paletteb,w[LEFT],3,3);
-display_color_palette(palettef,w[LEFT],7,3);
+display_color_palette(palettef,w[LEFT],9,3);
 
-printw("Hello world");
-int color =can_change_color();
-printw("%i",color);
-
-getch();
+char c; while((c=getch())!=K_QUIT){ switch(c){
+case 'b':
+	if((c=getch())=='a'){
+		int col =pick_color();
+		init_pair(15,COLOR_BLACK,col);
+		paletteb[5]=15;
+		display_color_palette(paletteb,w[LEFT],3,3);}
+	break;
+case 'f':
+	if((c=getch())=='a'){
+		int col =pick_color();
+		init_pair(16,col,COLOR_BLACK);
+		palettef[5]=16;
+		display_color_palette(palettef,w[LEFT],9,3);}
+	break;
+default:	break;}
+};
 endwin();
 return 0;}
 
@@ -66,7 +82,9 @@ return;}
 
 
 int pick_color(){
-printw("\nChoose a color: ");
+echo(); curs_set(1);
+mvprintw(3,24,"Choose a color: ");
+move(4,24);
 int r1,r2,r3, g1,g2,g3, b1,b2,b3;
 r1=r2=r3=g1=g2=g3=b1=b2=b3=0;
 r1 =getch()-'0';
@@ -107,22 +125,33 @@ else g=g1;
 if(b3) b=b1*100+b2*10+b3;
 else if(b2) b=b1*10+b2;
 else b=b1;
+move(5,24);
 printw("Your color: ");
-printw("%i,%i,%i",r,g,b);
+//printw("%i,%i,%i",r,g,b);
 init_color(20,r,g,b);
 init_pair(1,COLOR_BLACK,20);
 attron(COLOR_PAIR(1));
 printw("  ");
-return 20;}
+attroff(COLOR_PAIR(1));
+noecho(); curs_set(0);
+int ret=-1; char c; switch((c=getch())){
+case 'a':	ret= 20;	break;
+case 'd':	ret= -1;	break;
+default:	ret= -1;	break;}
+mvprintw(3,24,"               ");
+mvprintw(4,24,"           ");
+mvprintw(5,24,"              ");
+return ret;}
 
 
 
 void display_color_palette(int* palette,WINDOW* w,int y,int x){
-wmove(w,y,x);
-int width=10;
-for(int i=0;i<width;i++){
-	wattron(w,COLOR_PAIR(palette[i]));
+int width=5;
+for(int i=0;i<20;i+=width){
+wmove(w,y+i/width,x);
+for(int j=0;j<width;j++){
+	wattron(w,COLOR_PAIR(palette[i+j]));
 	wprintw(w,"cc");
-	wattroff(w,COLOR_PAIR(palette[i]));}
+	wattroff(w,COLOR_PAIR(palette[i+j]));}}
 wrefresh(w);
 return;}
