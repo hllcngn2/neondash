@@ -4,51 +4,64 @@
 #define LEFT	0
 #define MID	1
 #define RIGHT	2
+#define B	0
+#define F	1
+typedef struct{
+	int*	col;
+	int	n;	}palette;
 void create_ui(WINDOW** w);
 void create_canvas(WINDOW** w,int h,int width);
+void create_palettes(palette** p);
+int main2(WINDOW** w,palette** p);
 int pick_color();
-void display_color_palette(int* palette,WINDOW* w,int y,int x);
+void display_color_palette(palette* pal,WINDOW* w,int y,int x);
+void delete_windows(WINDOW** w);
+void delete_palettes(palette** p);
 
 int main(int ac, char** av){
 initscr();
- noecho(); curs_set(0);
- cbreak(); //nodelay(stdscr,TRUE);
- start_color(); refresh();
+noecho(); curs_set(0);
+cbreak(); //nodelay(stdscr,TRUE);
+start_color(); refresh();
 WINDOW** w =malloc(sizeof(WINDOW*)*3);
 create_ui(w);
 create_canvas(w,5+2,10+2);
+palette** p =malloc(sizeof(palette)*2);
+create_palettes(p);
 
-int* paletteb =calloc(20,sizeof(int));
-int* palettef =calloc(20,sizeof(int));
-/*
-int col =pick_color();
-init_pair(10,COLOR_BLACK,col);
-init_pair(11,col,COLOR_BLACK);
-paletteb[0]=10;
-palettef[0]=11;
-*/
-display_color_palette(paletteb,w[LEFT],3,3);
-display_color_palette(palettef,w[LEFT],9,3);
 
+display_color_palette(p[B],w[LEFT],3,3);
+display_color_palette(p[F],w[LEFT],9,3);
+
+int ret =main2(w,p);
+
+
+delete_windows(w);
+delete_palettes(p);
+endwin();
+return ret;}
+
+
+
+int main2(WINDOW** w,palette** p){
 char c; while((c=getch())!=K_QUIT){ switch(c){
 case 'b':
 	if((c=getch())=='a'){
-		int col =pick_color();
-		init_pair(15,COLOR_BLACK,col);
-		paletteb[5]=15;
-		display_color_palette(paletteb,w[LEFT],3,3);}
+		int col =pick_color(20+p[B]->n);
+		init_pair(20+p[B]->n,COLOR_BLACK,col);
+		p[B]->col[p[B]->n]=20+p[B]->n; p[B]->n++;
+		display_color_palette(p[B],w[LEFT],3,3);}
 	break;
 case 'f':
 	if((c=getch())=='a'){
-		int col =pick_color();
-		init_pair(16,col,COLOR_BLACK);
-		palettef[5]=16;
-		display_color_palette(palettef,w[LEFT],9,3);}
+		int col =pick_color(40+p[F]->n);
+		init_pair(40+p[F]->n,col,COLOR_BLACK);
+		p[F]->col[p[F]->n]=40+p[F]->n; p[F]->n++;
+		display_color_palette(p[F],w[LEFT],9,3);}
 	break;
-default:	break;}
-};
-endwin();
+default:	break;}};
 return 0;}
+
 
 
 
@@ -79,9 +92,33 @@ box(w[MID],0,0);
 wrefresh(w[MID]);
 return;}
 
+void delete_windows(WINDOW** w){
+delwin(w[LEFT]);
+delwin(w[RIGHT]);
+delwin(w[MID]);
+free(w);
+return;}
+
+void create_palettes(palette** p){
+p[B] =malloc(sizeof(palette));
+p[B]->col =calloc(20,sizeof(int));
+p[B]->n =0;
+p[F] =malloc(sizeof(palette));
+p[F]->col =calloc(20,sizeof(int));
+p[F]->n =0;
+return;}
+
+void delete_palettes(palette** p){
+free(p[B]->col);
+free(p[B]);
+free(p[F]->col);
+free(p[F]);
+free(p);
+return;}
 
 
-int pick_color(){
+
+int pick_color(int col){
 echo(); curs_set(1);
 mvprintw(3,24,"Choose a color: ");
 move(4,24);
@@ -128,14 +165,14 @@ else b=b1;
 move(5,24);
 printw("Your color: ");
 //printw("%i,%i,%i",r,g,b);
-init_color(20,r,g,b);
-init_pair(1,COLOR_BLACK,20);
+init_color(col,r,g,b);
+init_pair(1,COLOR_BLACK,col);
 attron(COLOR_PAIR(1));
 printw("  ");
 attroff(COLOR_PAIR(1));
 noecho(); curs_set(0);
 int ret=-1; char c; switch((c=getch())){
-case 'a':	ret= 20;	break;
+case 'a':	ret= col;	break;
 case 'd':	ret= -1;	break;
 default:	ret= -1;	break;}
 mvprintw(3,24,"               ");
@@ -145,13 +182,13 @@ return ret;}
 
 
 
-void display_color_palette(int* palette,WINDOW* w,int y,int x){
+void display_color_palette(palette* pal,WINDOW* w,int y,int x){
 int width=5;
 for(int i=0;i<20;i+=width){
 wmove(w,y+i/width,x);
 for(int j=0;j<width;j++){
-	wattron(w,COLOR_PAIR(palette[i+j]));
-	wprintw(w,"cc");
-	wattroff(w,COLOR_PAIR(palette[i+j]));}}
+	wattron(w,COLOR_PAIR(pal->col[i+j]));
+	wprintw(w,"XX");
+	wattroff(w,COLOR_PAIR(pal->col[i+j]));}}
 wrefresh(w);
 return;}
