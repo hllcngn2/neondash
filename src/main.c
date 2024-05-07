@@ -1,4 +1,9 @@
+#include <stdlib.h>
 #include <ncurses.h>
+#define LEFT	0
+#define MID	1
+#define RIGHT	2
+WINDOW** create_windows();
 void pick_color();
 
 int main(int ac, char** av){
@@ -7,10 +12,7 @@ initscr();
  cbreak(); //nodelay(stdscr,TRUE);
  start_color(); refresh();
 
-/*
-WINDOW* wleft;
-{int wlefth =
-*/
+WINDOW** w =create_windows();
 
 printw("Hello world");
 int color =can_change_color();
@@ -22,6 +24,35 @@ getch();
 
 endwin();
 return 0;}
+
+
+
+WINDOW** create_windows(){
+WINDOW** w =malloc(sizeof(WINDOW*)*3);
+int wlefth =20,
+ wleftw =18,
+ wlefty =2,
+ wleftx =4;
+ w[LEFT] =newwin(wlefth,wleftw,wlefty,wleftx);
+box(w[LEFT],0,0);
+wrefresh(w[LEFT]);
+ int wrighth =20,
+ wrightw =18,
+ wrighty =2,
+ wrightx =wleftx+wleftw+4;
+ w[RIGHT] =newwin(wrighth,wrightw,wrighty,wrightx);
+box(w[RIGHT],0,0);
+wrefresh(w[RIGHT]);
+ int wmidh =20,
+ wmidw =20,
+ wmidy =2,
+ wmidx =wrightx+wrightw+4;
+ w[MID] =newwin(wmidh,wmidw,wmidy,wmidx);
+box(w[MID],0,0);
+wrefresh(w[MID]);
+return w;}
+
+
 
 void pick_color(){
 printw("\nChoose a color: ");

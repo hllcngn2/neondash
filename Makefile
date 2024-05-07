@@ -1,2 +1,4 @@
 all:
-	gcc main.c -lncurses
+	gcc -oneondash \
+		src/main.c \
+			-lncurses
