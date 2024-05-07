@@ -3,7 +3,8 @@
 #define LEFT	0
 #define MID	1
 #define RIGHT	2
-WINDOW** create_windows();
+void create_ui(WINDOW** w);
+void create_canvas(WINDOW** w,int h,int width);
 int pick_color();
 void display_color_palette(int* palette,WINDOW* w,int y,int x);
 
@@ -12,7 +13,9 @@ initscr();
  //noecho(); curs_set(0);
  cbreak(); //nodelay(stdscr,TRUE);
  start_color(); refresh();
-WINDOW** w =create_windows();
+WINDOW** w =malloc(sizeof(WINDOW*)*3);
+create_ui(w);
+create_canvas(w,5+2,10+2);
 int* paletteb =calloc(20,sizeof(int));
 int* palettef =calloc(20,sizeof(int));
 pick_color();
@@ -33,30 +36,32 @@ return 0;}
 
 
 
-WINDOW** create_windows(){
-WINDOW** w =malloc(sizeof(WINDOW*)*3);
+void create_ui(WINDOW** w){
 int wlefth =20,
- wleftw =18,
+ wleftw =16,
  wlefty =2,
  wleftx =4;
  w[LEFT] =newwin(wlefth,wleftw,wlefty,wleftx);
 box(w[LEFT],0,0);
 wrefresh(w[LEFT]);
  int wrighth =20,
- wrightw =18,
+ wrightw =16,
  wrighty =2,
- wrightx =wleftx+wleftw+4;
+ wrightx =46;
  w[RIGHT] =newwin(wrighth,wrightw,wrighty,wrightx);
 box(w[RIGHT],0,0);
 wrefresh(w[RIGHT]);
- int wmidh =20,
- wmidw =20,
- wmidy =2,
- wmidx =wrightx+wrightw+4;
+return;}
+
+void create_canvas(WINDOW** w,int h,int width){
+ int wmidh =h,
+ wmidw =width,
+ wmidy =7,
+ wmidx =27;
  w[MID] =newwin(wmidh,wmidw,wmidy,wmidx);
 box(w[MID],0,0);
 wrefresh(w[MID]);
-return w;}
+return;}
 
 
 
