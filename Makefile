@@ -1,4 +1,5 @@
 all:
 	gcc -oneondash \
 		src/main.c \
-			-lncurses
+			-I. \
+				-lncurses
