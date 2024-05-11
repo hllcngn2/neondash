@@ -25,6 +25,8 @@ int main2(WINDOW** w,vignette* vign,curs* cursor,palette** p,paint* pnt);
 int in_vignette(WINDOW* w,vignette* vign,curs* cursor);
 int in_palette(palette* p,int* pnt);
 void display_color_palette(palette* pal,int pnt);
+void display_canvas(WINDOW* w,vignette* vign);
+void display_symbol_palette(WINDOW* w,int h,int width);
 void update_curs_palette(palette* p,int pnt);
 void create_ui(WINDOW** w);
 void create_canvas(WINDOW** w,int h,int width);
@@ -58,10 +60,18 @@ if(ac==3){
 	if(vign->w>20 || vign->w<=0) vign->w =20;}
 else{	vign->h =5;	vign->w =10;}
 create_canvas(w,vign->h+2,vign->w+2);
+vign->c =malloc(sizeof(int*)*vign->h);
+for(int y=0;y<vign->h;y++)
+	vign->c[y] =malloc(sizeof(int)*vign->w);
+for(int y=0;y<vign->h;y++)
+	for(int x=0;x<vign->w;x++)
+		vign->c[y][x] =' ';
 
 display_color_palette(p[B],pnt->b);
 display_color_palette(p[F],pnt->f);
 wrefresh(w[LEFT]);
+display_symbol_palette(w[RIGHT],20,16);
+wrefresh(w[RIGHT]);
 
 int ret =main2(w,vign,cursor,p,pnt);
 
@@ -79,7 +89,7 @@ case K_PAL_FG:	run=in_palette(p[F],&(pnt->f));	break;
 case 'n':	break;
 case 'g':	break;
 case K_CANVAS:	run=in_vignette(w[MID],vign,cursor);	break;
-default:					break;}
+default:	run =0;					break;}
 if(run) c= run;}};
 return 0;}
 
@@ -90,6 +100,10 @@ curs_set(1);
 wmove(w,cursor->y+1,cursor->x+1);
 wrefresh(w);
 switch((c=getch())){
+case K_DASH:	if((c=getch())>=32 && c<=126)
+			vign->c[cursor->y][cursor->x] =c;
+		display_canvas(w,vign);
+		break;
 case K_LEFT:	if(cursor->x>0)    cursor->x--;		break;
 case K_DOWN:	if(cursor->y<vign->h-1)  cursor->y++;	break;
 case K_UP:	if(cursor->y>0)    cursor->y--;		break;
@@ -135,6 +149,20 @@ for(int i=0;i<20;i++){
 	if(i==pnt)	wprintw(w,"XX");
 	else		wprintw(w,"xx");
 	wattroff(w,COLOR_PAIR(range+i));}
+return;}
+
+void display_canvas(WINDOW* w,vignette* vign){
+for(int y=0;y<vign->h;y++){
+	wmove(w,y+1,1);
+	for(int x=0;x<vign->w;x++)
+		waddch(w,vign->c[y][x]);}
+return;}
+
+void display_symbol_palette(WINDOW* w,int h,int width){
+for(int c=32,n=0;c<=126;c++,n++){
+	if(!(n%((width-2)/2)))
+		wmove(w,n/((width-2)/2)+1,1);
+	waddch(w,c); waddch(w,' ');}
 return;}
 
 
@@ -223,7 +251,7 @@ return;}
 void create_canvas(WINDOW** w,int h,int width){
  int wmidh =h,
  wmidw =width,
- wmidy =7,
+ wmidy =20/2-(h-1)/2+1,
  wmidx =(46+16)/2-width/2+2;
 w[MID] =newwin(wmidh,wmidw,wmidy,wmidx);
  box(w[MID],0,0);

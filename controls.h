@@ -14,3 +14,4 @@
 
 #define K_ADD		'a'
 #define K_CHANGE	's'
+#define K_DASH		' '
