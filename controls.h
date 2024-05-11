@@ -5,6 +5,7 @@
 
 #define K_PAL_FG	'f'
 #define K_PAL_BG	'b'
+#define K_CANVAS	'i'
 
 #define K_LEFT		'h'
 #define K_DOWN		'j'
