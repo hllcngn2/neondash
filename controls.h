@@ -2,6 +2,7 @@
 
 #define K_QUIT		'q'
 #define K_ESC		27
+#define K_SAVE		's'
 
 #define K_PAL_FG	'f'
 #define K_PAL_BG	'b'

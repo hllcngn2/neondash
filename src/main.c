@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <ncurses.h>
+#include <stdio.h>
+#include <string.h>
 #include "controls.h"
 //windows id
 #define LEFT	0
@@ -33,6 +35,7 @@ void create_canvas(WINDOW** w,int h,int width);
 void delete_windows(WINDOW** w);
 void create_palettes(palette** p,WINDOW** w);
 void delete_palettes(palette** p);
+void save(vignette* vign);
 int pick_color();
 
 int main(int ac, char** av){
@@ -86,28 +89,34 @@ int c; while((c=getch())!=K_QUIT){
 int run=1; while(run){ switch(c){
 case K_PAL_BG:	run=in_palette(p[B],&(pnt->b));	break;
 case K_PAL_FG:	run=in_palette(p[F],&(pnt->f));	break;
-case 'n':	break;
-case 'g':	break;
 case K_CANVAS:	run=in_vignette(w[MID],vign,cursor);	break;
+case K_SAVE:	save(vign);	break;
 default:	run =0;					break;}
 if(run) c= run;}};
 return 0;}
 
 
 int in_vignette(WINDOW* w,vignette* vign,curs* cursor){	int ret=0;
-int c=0; while(c!=K_ESC){
 curs_set(1);
+int c=0; while(c!=K_ESC){
 wmove(w,cursor->y+1,cursor->x+1);
 wrefresh(w);
 switch((c=getch())){
-case K_DASH:	if((c=getch())>=32 && c<=126)
+case K_DASH:
+		curs_set(0); wrefresh(w);
+		if((c=getch())>=32 && c<=126)
 			vign->c[cursor->y][cursor->x] =c;
 		display_canvas(w,vign);
+		curs_set(0);
 		break;
-case K_LEFT:	if(cursor->x>0)    cursor->x--;		break;
-case K_DOWN:	if(cursor->y<vign->h-1)  cursor->y++;	break;
-case K_UP:	if(cursor->y>0)    cursor->y--;		break;
-case K_RIGHT:	if(cursor->x<vign->w-1) cursor->x++;	break;
+case K_LEFT:	if(cursor->x>0)    cursor->x--;
+		curs_set(1);	break;
+case K_DOWN:	if(cursor->y<vign->h-1)  cursor->y++;
+		curs_set(1);	break;
+case K_UP:	if(cursor->y>0)    cursor->y--;	
+		curs_set(1);	break;
+case K_RIGHT:	if(cursor->x<vign->w-1) cursor->x++;
+		curs_set(1);	break;
 case K_PAL_FG:
 case K_PAL_BG:
 case K_CANVAS:	ret= c; c= K_ESC;			break;
@@ -200,7 +209,7 @@ b2 =getch();	if(b2!=' '){
 		b3 =getch();	if(b3!=' ') b3-='0';
 				else b3=0;}
 		else b2=0;
-noecho(); curs_set(0);
+noecho(); //curs_set(0);
 int r,g,b;
  if(r3)		r= r1*100+r2*10+r3;
  else if(r2)	r= r1*10+r2;
@@ -213,9 +222,10 @@ int r,g,b;
  else		b= b1;
 init_color(col,r,g,b);
 move(5,24); printw("Your color: ");
+//printw("%i,%i,%i,col=%i,%i",r,g,b,col,can_change_color());
  init_pair(1,COLOR_BLACK,col);
  attron(COLOR_PAIR(1));
- printw("  ");
+ printw("  "); curs_set(0); refresh();
  attroff(COLOR_PAIR(1));
 char c; switch((c=getch())){
 case K_ADD:	ret= col;
@@ -282,4 +292,28 @@ void delete_palettes(palette** p){
  free(p[B]);
  free(p[F]);
 free(p);
+return;}
+
+void save(vignette* vign){
+WINDOW* w =newwin(4,30,(20+4)/2-4/2,(46+16+2)/2-30/2+1);
+mvwprintw(w,1,30/2-7/2-1,"save as");
+box(w,0,0);
+//nocbreak(); echo();
+curs_set(1); wmove(w,2,5);
+wrefresh(w);
+char* filename =malloc(20);
+char c; int i; for(i=0;(c=getch())!='\n' && i<20;i++){
+	waddch(w,c); wrefresh(w);
+	filename[i] =c;}
+filename[i] ='\0';
+char* path =calloc(32,1);
+strncat(path,"vignettes/",11);
+strncat(path,filename,20);
+printw(filename); refresh(); getch();
+FILE* f =fopen(path,"w+");
+/*
+fputc('c',f);
+*/
+fclose(f);
+curs_set(0);
 return;}
