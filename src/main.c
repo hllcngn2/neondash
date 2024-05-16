@@ -89,15 +89,6 @@ return ret;}
 
 int main2(WINDOW** w,vignette* vign,curs* cursor,palette** p,paint* pnt){
 int c; while((c=getch())!=K_QUIT){
-<<<<<<< HEAD
-int run=1; while(run){ switch(c){
-case K_PAL_BG:	run=in_palette(p[B],&(pnt->b));	break;
-case K_PAL_FG:	run=in_palette(p[F],&(pnt->f));	break;
-case K_CANVAS:	run=in_vignette(w[MID],vign,cursor);	break;
-case K_SAVE:	save(vign);	break;
-default:	run =0;					break;}
-if(run) c= run;}};
-=======
 while(c){ switch(c){
 case K_PAL_BG:	c=in_palette(p[B],&(pnt->b));		break;
 case K_PAL_FG:	c=in_palette(p[F],&(pnt->f));		break;
@@ -105,7 +96,6 @@ case K_CANVAS:	c=in_vignette(w[MID],vign,cursor);	break;
 case K_SAVE:	save(vign);				break;
 default:	c =0;					break;}
 }};
->>>>>>> 80039a8 (tweaks)
 return 0;}
 
 
@@ -223,10 +213,7 @@ b2 =getch();	if(b2!=' '){
 				else b3=0;}
 		else b2=0;
 noecho(); //curs_set(0);
-<<<<<<< HEAD
-=======
 
->>>>>>> 80039a8 (tweaks)
 int r,g,b;
  if(r3)		r= r1*100+r2*10+r3;
  else if(r2)	r= r1*10+r2;
