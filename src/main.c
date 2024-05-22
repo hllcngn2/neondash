@@ -1,3 +1,4 @@
+// here lies darkmage
 #include <stdlib.h>
 #include <ncurses.h>
 #include <stdio.h>
@@ -24,8 +25,8 @@ typedef struct{
 	int**	c;
 	int**	cp;	}vignette;
 int main2(WINDOW** w,vignette* vign,curs* cursor,palette** p,paint* pnt);
-int in_vignette(WINDOW* w,vignette* vign,curs* cursor);
-int in_palette(palette* p,int* pnt);
+int in_vignette(WINDOW* w,vignette* vign,curs* cursor,paint* pnt);
+int in_palette(palette* p,int* pnt,int pnt2,int d);
 void display_color_palette(palette* pal,int pnt);
 void display_canvas(WINDOW* w,vignette* vign);
 void display_symbol_palette(WINDOW* w,int h,int width);
@@ -33,6 +34,7 @@ void update_curs_palette(palette* p,int pnt);
 void create_ui(WINDOW** w);
 void create_canvas(WINDOW** w,int h,int width);
 void delete_windows(WINDOW** w);
+vignette* create_vignette(int h,int w);
 void delete_vignette(vignette* vign);
 void create_palettes(palette** p,WINDOW** w);
 void delete_palettes(palette** p);
@@ -46,24 +48,15 @@ initscr();
  start_color(); refresh();
 WINDOW** w =malloc(sizeof(WINDOW*)*3);
  create_ui(w);
-vignette* vign =malloc(sizeof(vign));
- if(ac==3){ vign->h =atoi(av[1]);
-	if(vign->h>10 || vign->h<=0) vign->h =10;
-	vign->w =atoi(av[2]);
-	if(vign->w>20 || vign->w<=0) vign->w =20;}
- else{	vign->h =5;	vign->w =10;}
-create_canvas(w,vign->h+2,vign->w+2);
- vign->c =malloc(sizeof(int*)*vign->h);
- for(int y=0;y<vign->h;y++){
-	vign->c[y] =malloc(sizeof(int)*vign->w);
-	for(int x=0;x<vign->w;x++)
-		vign->c[y][x] =' ';}
+ int h,w; if(ac==3){ h =atoi(av[1]);
+	if(h>10 || h<=0) h =10;
+	w =atoi(av[2]);
+	if(w>20 || w<=0) w =20;}
+ else{	h =5;	w =10;}
+ create_canvas(w,h+2,w+2);
+vignette* vign =create_vignette(h,w);
 palette** p =malloc(sizeof(palette)*2);
  create_palettes(p,w);
- for(int i=p[B]->range;i<p[B]->range+24;i++)
-	init_pair(i,COLOR_BLACK,COLOR_WHITE);
- for(int i=p[F]->range;i<p[F]->range+24;i++)
-	init_pair(i,COLOR_WHITE,COLOR_BLACK);
 paint* pnt =malloc(sizeof(paint));
  *pnt =(paint){0,0};
 curs* cursor =malloc(sizeof(curs));
@@ -90,25 +83,26 @@ return ret;}
 int main2(WINDOW** w,vignette* vign,curs* cursor,palette** p,paint* pnt){
 int c; while((c=getch())!=K_QUIT){
 while(c){ switch(c){
-case K_PAL_BG:	c=in_palette(p[B],&(pnt->b));		break;
-case K_PAL_FG:	c=in_palette(p[F],&(pnt->f));		break;
-case K_CANVAS:	c=in_vignette(w[MID],vign,cursor);	break;
+case K_PAL_BG:	c=in_palette(p[B],&(pnt->b),pnt->f,'b'); break;
+case K_PAL_FG:	c=in_palette(p[F],&(pnt->f),pnt->b,'f'); break;
+case K_CANVAS:	c=in_vignette(w[MID],vign,cursor,pnt);	break;
 case K_SAVE:	save(vign);				break;
 default:	c =0;					break;}
 }};
 return 0;}
 
 
-int in_vignette(WINDOW* w,vignette* vign,curs* cursor){	int ret=0;
-curs_set(1);
+int in_vignette(WINDOW* w,vignette* vign,curs* cursor,paint* pnt){
+int ret=0; curs_set(1);
 int c=0; while(c!=K_ESC){
 wmove(w,cursor->y+1,cursor->x+1);
 wrefresh(w);
 switch((c=getch())){
 case K_DASH:
 		curs_set(0); wrefresh(w);
-		if((c=getch())>=32 && c<=126)
+		if((c=getch())>=32 && c<=126){
 			vign->c[cursor->y][cursor->x] =c;
+			vign->cp[cursor->y][cursor->x] =pnt->b*24+pnt->f;}
 		display_canvas(w,vign);
 		curs_set(0);
 		break;
@@ -128,7 +122,7 @@ curs_set(0); wrefresh(w);
 return ret;}
 
 
-int in_palette(palette* p,int* pnt){	int ret=0;
+int in_palette(palette* p,int* pnt,int pnt2,int d){	int ret=0;
 int c=0; while(c!=K_ESC){
 curs_set(1);
 display_color_palette(p,*pnt);
@@ -136,8 +130,14 @@ update_curs_palette(p,*pnt);
 wrefresh(p->w);
 switch((c=getch())){
 case K_ADD:	int col =p->range+*pnt;
-		if(pick_color(col)!=-1)
-			init_pair(col,COLOR_BLACK,col);	break;
+		if(pick_color(col)!=-1){
+		if(d=='b'){
+			init_pair(col,COLOR_BLACK,col);
+			init_pair(100+*pnt*24+pnt2,20+*pnt,50+pnt2);}
+		else if(d=='f'){
+			init_pair(col,col,COLOR_BLACK);
+			init_pair(100+pnt2*24+*pnt,20+pnt2,50+*pnt);}}
+					break;
 case K_LEFT:	if(*pnt%p->width)     (*pnt)--;		break;
 case K_DOWN:	if(*pnt<20-p->width)  *pnt+=p->width;	break;
 case K_UP:	if(*pnt>p->width-1)   *pnt-=p->width;	break;
@@ -166,8 +166,10 @@ return;}
 void display_canvas(WINDOW* w,vignette* vign){
 for(int y=0;y<vign->h;y++){
 	wmove(w,y+1,1);
-	for(int x=0;x<vign->w;x++)
-		waddch(w,vign->c[y][x]);}
+	for(int x=0;x<vign->w;x++){
+		wattron(w,COLOR_PAIR(vign->cp[y][x]));
+		waddch(w,vign->c[y][x]);
+		wattroff(w,COLOR_PAIR(vign->cp[y][x]));}}
 return;}
 
 void display_symbol_palette(WINDOW* w,int h,int width){
@@ -279,13 +281,27 @@ void delete_windows(WINDOW** w){
 free(w);
 return;}
 
+vignette* create_vignette(int h,int w){
+vignette* vign =malloc(sizeof(vignette));
+vign->h =h;
+vign->w =w;
+ vign->c =malloc(sizeof(int*)*h);
+ vign->cp =malloc(sizeof(int*)*h);
+ for(int y=0;y<h;y++){
+	vign->c[y] =malloc(sizeof(int)*w);
+	vign->cp[y] =malloc(sizeof(int)*w);
+	for(int x=0;x<w;x++){
+		vign->c[y][x] =' ';
+		vign->cp[y][x] =1;}}
+return vign;}
+
 void delete_vignette(vignette* vign){
 for(int i=0;i<vign->h;i++){
 	free(vign->c[i]);
-//	free(vign->cp[i]);
+	free(vign->cp[i]);
 }
 free(vign->c);
-//free(vign->cp);
+free(vign->cp);
 free(vign);
 return;}
 
@@ -300,6 +316,12 @@ p[F] =malloc(sizeof(palette));
  p[F]->w =w[LEFT];
  p[F]->y =9;	p[F]->x =3;
  p[F]->width =5;
+for(int i=p[B]->range;i<p[B]->range+24;i++)
+	init_pair(i,COLOR_BLACK,COLOR_WHITE);
+for(int i=p[F]->range;i<p[F]->range+24;i++)
+	init_pair(i,COLOR_WHITE,COLOR_BLACK);
+for(int i=100;i<100+24*24;i++)
+	init_pair(i,COLOR_WHITE,COLOR_BLACK);
 return;}
 
 void delete_palettes(palette** p){
