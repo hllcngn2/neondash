@@ -4,6 +4,8 @@
 #include <ncurses.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include "controls.h"
 //windows id
 #define LEFT	0
@@ -129,8 +131,8 @@ curs_set(1);
 display_color_palette(p,*pnt);
 update_curs_palette(p,*pnt);
 wrefresh(p->w);
-switch((c=getch())){
-case K_ADD:	int col =p->range+*pnt;
+int col; switch((c=getch())){
+case K_ADD:	col =p->range+*pnt;
 		if(pick_color(col)!=-1){
 		if(d=='b'){
 			init_pair(col,COLOR_BLACK,col);
@@ -347,6 +349,7 @@ char* path =calloc(32,1);
 strncat(path,"vignettes/",11);
 strncat(path,filename,20);
 printw(filename); refresh(); getch();
+mkdir("./vignettes", 0700);
 FILE* f =fopen(path,"w+");
 /*
 fputc('c',f);
