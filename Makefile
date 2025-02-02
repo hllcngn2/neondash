@@ -1,7 +1,4 @@
 all:
-	gcc -oneondash \
-		src/main.c \
-			-I. \
-				-lncurses
+	gcc -oneondash src/main.c -I. -lncurses
 clean:
-	rm *.exe*
+	rm *.exe* neondash
