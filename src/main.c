@@ -31,6 +31,7 @@ int in_pal(pal* pl,int* pnt,int pnt2,int d);
 void display_color_pal(pal* pl,int pnt);
 void display_canvas(WINDOW* wi,vign* v);
 void display_symbol_pal(WINDOW* wi,int h,int w);
+void redisplay(WINDOW** win, pal** pl, paint* pnt, vign* v);
 void update_curs_pal(pal* pl,int pnt);
 void create_ui(WINDOW** win);
 void create_canvas(WINDOW** win,int h,int w);
@@ -63,11 +64,7 @@ paint* pnt =malloc(sizeof(paint));
 curs* cur =malloc(sizeof(curs));
  *cur =(curs){0,0};
 
-display_color_pal(pl[B],pnt->b);
-display_color_pal(pl[F],pnt->f);
-wrefresh(win[LEFT]);
-display_symbol_pal(win[RIGHT],20,16);
-wrefresh(win[RIGHT]);
+redisplay(win, pl, pnt, v);
 
 int ret =main2(win,v,cur,pl,pnt);
 
@@ -80,6 +77,19 @@ free(cur);
 endwin();
 return ret;}
 
+void redisplay(WINDOW** win, pal** pl, paint* pnt, vign* v){
+erase(); refresh();
+display_color_pal(pl[B],pnt->b);
+display_color_pal(pl[F],pnt->f);
+box(win[LEFT],0,0);
+wrefresh(win[LEFT]);
+display_symbol_pal(win[RIGHT],20,16);
+box(win[RIGHT],0,0);
+wrefresh(win[RIGHT]);
+display_canvas(win[MID],v);
+box(win[MID],0,0);
+wrefresh(win[MID]);}
+
 
 
 int main2(WINDOW** win,vign* v,curs* cur,pal** pl,paint* pnt){
@@ -88,7 +98,7 @@ while(c){ switch(c){
 case K_PAL_BG:	c=in_pal(pl[B],&(pnt->b),pnt->f,'b'); break;
 case K_PAL_FG:	c=in_pal(pl[F],&(pnt->f),pnt->b,'f'); break;
 case K_CANVAS:	c=in_vign(win[MID],v,cur,pnt);	break;
-case K_SAVE:	save(v);				break;
+case K_SAVE:	save(v); redisplay(win, pl, pnt, v); c =0; break;
 default:	c =0;					break;}
 }};
 return 0;}
@@ -335,7 +345,6 @@ void save(vign* v){
 WINDOW* wi =newwin(4,30,(20+4)/2-4/2,(46+16+2)/2-30/2+1);
 mvwprintw(wi,1,30/2-7/2-1,"save as");
 box(wi,0,0);
-//nocbreak(); echo();
 curs_set(1); wmove(wi,2,5);
 wrefresh(wi);
 char* filename =malloc(20);
@@ -344,14 +353,15 @@ char c; int i; for(i=0;(c=getch())!='\n' && i<20;i++){
 	filename[i] =c;}
 filename[i] ='\0';
 char* path =calloc(32,1);
-strncat(path,"vigns/",11);
+strncat(path,"vignettes/",11);
 strncat(path,filename,20);
-printw(filename); refresh(); getch();
 mkdir("./vignettes", 0700);
 FILE* f =fopen(path,"w+");
-/*
-fputc('c',f);
-*/
+for(int h=0;h<v->h;h++){
+	for(int w=0;w<v->w;w++){
+		fputc(v->c[h][w],f);}
+	fputc('\n',f);}
 fclose(f);
+delwin(wi);
 curs_set(0);
 return;}

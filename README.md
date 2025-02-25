@@ -21,16 +21,16 @@ s - save\
 i - canvas focus\
 space - modify a canvas cell\
 \
-f - select fg palette\
-b - select bg palette\
+f - fg palette focus\
+b - bg palette focus\
 a - add then validate a new color\
 s - discard new color and try another one\
-NB: the ASCII chars palette is not interactive and for indicative purposes only\
+NB: the ASCII char palette is not interactive and for indicative purposes only\
 \
 hjkl - move cursor\
 esc - esc\
 \
-NB: These controls can be modified in controls.h with a recompile\
+NB: These controls can be modified in controls.h with a recompile
 
 ### author
 by d0pe
