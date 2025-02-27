@@ -1,5 +1,6 @@
 # neondash
-ASCII vignette editor for the terminal
+ASCII vignette editor for the terminal\
+CURRENTLY FUNCTIONAL IN BLACK & WHITE
 
 ### description
 This program is designed to enable crafting of small, character-perfect, coloured pieces of ASCII art.
@@ -20,15 +21,17 @@ s - save\
 \
 i - canvas focus\
 space - modify a canvas cell\
+type your ASCII character after pressing space\
 \
-f - fg palette focus\
-b - bg palette focus\
-a - add then validate a new color\
-s - discard new color and try another one\
+(not currently fully functional)
+(f - fg palette focus)\
+(b - bg palette focus)\
+(a - add then validate a new color)\
+(s - discard new color and try another one)\
 NB: the ASCII char palette is not interactive and for indicative purposes only\
 \
 hjkl - move cursor\
-esc - esc\
+esc - exit focus\
 \
 NB: These controls can be modified in controls.h with a recompile
 
