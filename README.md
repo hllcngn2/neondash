@@ -23,7 +23,7 @@ i - canvas focus\
 space - modify a canvas cell\
 type your ASCII character after pressing space\
 \
-(not currently fully functional)
+(not currently fully functional)\
 (f - fg palette focus)\
 (b - bg palette focus)\
 (a - add then validate a new color)\
